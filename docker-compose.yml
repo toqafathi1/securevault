@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: securevault_postgres
+    environment:
+      POSTGRES_USER: securevault
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: securevault
+    ports:
+      - "127.0.0.1:5432:5432"   # loopback-only — never 0.0.0.0, see README
+    volumes:
+      - securevault_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U securevault"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    container_name: securevault_app
+    depends_on:
+      postgres:
+        condition: service_healthy   # actually waits for READINESS, not just "started"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/securevault
+      DB_USERNAME: securevault
+      DB_PASSWORD: changeme
+      JWT_SECRET: ${JWT_SECRET:?set a real base64 secret via env, never hardcode it here}
+    ports:
+      - "8080:8080"
+
+volumes:
+  securevault_db:
