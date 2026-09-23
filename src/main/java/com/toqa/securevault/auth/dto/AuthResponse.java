@@ -15,5 +15,5 @@ public class AuthResponse {
     private String accessToken;
     private String refreshToken;
     private long expiresInSeconds;
-    private String test4;
+    private String test5;
 }
